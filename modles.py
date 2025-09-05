@@ -1,10 +1,10 @@
 
 class Author:
-    def __init__ (self, name:str, display_name:str='', dblpid:str='', paper_list:list=[]):
+    def __init__ (self, name:str, display_name:str='', dblpid:str='', papers_list:list=[]):
         self.name = name
         self.display_name = display_name
         self.dblpid = dblpid
-        self.paper_list = paper_list
+        self.papers_list = papers_list
 
     @classmethod
     def from_dict(cls,data:dict):
@@ -16,7 +16,7 @@ class Author:
             name = data.get('name',''),
             display_name = data.get('display_name',''),
             dblpid = data.get('dblpid',''),
-            paper_list = data.get('paper_list',[])
+            papers_list = data.get('papers_list',[])
         )
     
     def to_dict(self, include_empty=False):

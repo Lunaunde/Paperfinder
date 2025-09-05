@@ -4,6 +4,7 @@ import json
 import questionary
 import json_file_operations
 from ui.cli import run_cli
+from modles import Author, Paper
 
 def load_xml_optional_subele(target_dict,element,subele_name):
     if element.find(subele_name) != None:
@@ -59,9 +60,12 @@ def papers_data_merge(existing_papers, new_papers):
     return existing_papers
                 
 def main():
-    global author_list
-    load_success,data_dict=json_file_operations.file_to_dict('authors_papers_data.json')
-    author_list = data_dict['author_list']
+    global authors_list
+    load_success , data_dict = json_file_operations.file_to_dict('authors_papers_data.json')
+    for sigle_author in data_dict['authors_list']:
+        authors_list.append(Author.from_dict(sigle_author))
+    if load_success == False:
+        authors_list = []
     # authors_papers_data, is_jsonfile_load = jsonfile_to_dict('authors_papers_data.json')
     # if is_jsonfile_load == False:
     #     authors_papers_data['authorlist'] = []
@@ -73,7 +77,7 @@ def main():
         
     # dict_to_jsonfile('authors_papers_data.json',authors_papers_data)
     # return
-    data_dict['author_list'] = author_list.to_dict()
+    data_dict['authors_list'] = authors_list.to_dict()
     json_file_operations.dict_to_file('authors_papers_data.json',data_dict)
 
 if __name__ == '__main__':
