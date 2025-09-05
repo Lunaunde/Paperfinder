@@ -5,14 +5,14 @@ def file_to_dict(filename):
         with open(filename,'r',encoding='utf-8') as file:
             data_dict = json.load(file)
         print(f'Loaded {filename} successfully')
-        return data_dict, True
+        return True , data_dict
     except FileNotFoundError:
         print(f"Error:file {filename} not found")
     except json.JSONDecodeError as errorinfo:
         print(f'Error:failed to decode JSON from file {filename}, error info:\n{errorinfo}')
     except Exception as errorinfo:
         print(f'Error:an unexpected error occurred while reading file {filename}, error info:\n{errorinfo}')
-    return {}, False
+    return False , {} 
 
 def dict_to_file(filename,data_dict):
     try:
