@@ -1,0 +1,538 @@
+{
+    "authors_list": [
+        {
+            "name": "Benedikt_Bitterli",
+            "display_name": "BB(debug)",
+            "dblpid": "165/9820",
+            "papers_list": [
+                {
+                    "title": "Generative Detail Enhancement for Physically Based Materials.",
+                    "type": "article",
+                    "year": "2025",
+                    "author_name_list": [
+                        "Saeed Hadadan",
+                        "Benedikt Bitterli",
+                        "Tizian Zeltner",
+                        "Jan Nov\u00e1k",
+                        "Fabrice Rousselle",
+                        "Jacob Munkberg",
+                        "Jon Hasselgren",
+                        "Bartlomiej Wronski",
+                        "Matthias Zwicker"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.48550/arXiv.2502.13994"
+                    ],
+                    "month": "February",
+                    "volume": "abs/2502.13994",
+                    "journal": "CoRR"
+                },
+                {
+                    "title": "A Generalized Ray Formulation For Wave-Optical Light Transport.",
+                    "type": "article",
+                    "year": "2024",
+                    "author_name_list": [
+                        "Shlomi Steinberg",
+                        "Ravi Ramamoorthi",
+                        "Benedikt Bitterli",
+                        "Eugene d'Eon",
+                        "Ling-Qi Yan 0001",
+                        "Matt Pharr"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3687902"
+                    ],
+                    "month": "December",
+                    "volume": "43",
+                    "pages": "241:1-241:15",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "From microfacets to participating media: A unified theory of light transport with stochastic geometry.",
+                    "type": "article",
+                    "year": "2024",
+                    "author_name_list": [
+                        "Dario Seyb",
+                        "Eugene d'Eon",
+                        "Benedikt Bitterli",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3658121"
+                    ],
+                    "month": "July",
+                    "volume": "43",
+                    "pages": "112:1-112:17",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "A Free-Space Diffraction BSDF.",
+                    "type": "article",
+                    "year": "2024",
+                    "author_name_list": [
+                        "Shlomi Steinberg",
+                        "Ravi Ramamoorthi",
+                        "Benedikt Bitterli",
+                        "Arshiya Mollazainali",
+                        "Eugene d'Eon",
+                        "Matt Pharr"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3658166"
+                    ],
+                    "month": "July",
+                    "volume": "43",
+                    "pages": "113:1-113:15",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Real-time Neural Appearance Models.",
+                    "type": "article",
+                    "year": "2024",
+                    "author_name_list": [
+                        "Tizian Zeltner",
+                        "Fabrice Rousselle",
+                        "Andrea Weidlich",
+                        "Petrik Clarberg",
+                        "Jan Nov\u00e1k",
+                        "Benedikt Bitterli",
+                        "Alex Evans",
+                        "Tom\u00e1s Davidovic",
+                        "Simon Kallweit",
+                        "Aaron E. Lefohn"
+                    ],
+                    "ee_list": [
+                        "https://www.wikidata.org/entity/Q131131230",
+                        "https://doi.org/10.1145/3659577"
+                    ],
+                    "month": "June",
+                    "volume": "43",
+                    "pages": "33:1-33:17",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Decorrelating ReSTIR Samplers via MCMC Mutations.",
+                    "type": "article",
+                    "year": "2024",
+                    "author_name_list": [
+                        "Rohan Sawhney",
+                        "Daqi Lin",
+                        "Markus Kettunen 0001",
+                        "Benedikt Bitterli",
+                        "Ravi Ramamoorthi",
+                        "Chris Wyman",
+                        "Matt Pharr"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3629166"
+                    ],
+                    "month": "February",
+                    "volume": "43",
+                    "pages": "10:1-10:15",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "A Generalized Ray Formulation For Wave-Optics Rendering.",
+                    "type": "article",
+                    "year": "2023",
+                    "author_name_list": [
+                        "Shlomi Steinberg",
+                        "Ravi Ramamoorthi",
+                        "Benedikt Bitterli",
+                        "Eugene d'Eon",
+                        "Ling-Qi Yan 0001",
+                        "Matt Pharr"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.48550/arXiv.2303.15762"
+                    ],
+                    "volume": "abs/2303.15762",
+                    "journal": "CoRR"
+                },
+                {
+                    "title": "Real-Time Neural Appearance Models.",
+                    "type": "article",
+                    "year": "2023",
+                    "author_name_list": [
+                        "Tizian Zeltner",
+                        "Fabrice Rousselle",
+                        "Andrea Weidlich",
+                        "Petrik Clarberg",
+                        "Jan Nov\u00e1k",
+                        "Benedikt Bitterli",
+                        "Alex Evans",
+                        "Tom\u00e1s Davidovic",
+                        "Simon Kallweit",
+                        "Aaron E. Lefohn"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.48550/arXiv.2305.02678"
+                    ],
+                    "volume": "abs/2305.02678",
+                    "journal": "CoRR"
+                },
+                {
+                    "title": "A Gentle Introduction to ReSTIR Path Reuse in Real-Time.",
+                    "type": "inproceedings",
+                    "year": "2023",
+                    "author_name_list": [
+                        "Chris Wyman",
+                        "Markus Kettunen 0001",
+                        "Daqi Lin",
+                        "Benedikt Bitterli",
+                        "Cem Yuksel",
+                        "Wojciech Jarosz",
+                        "Pawel Kozlowski"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3587423.3595511"
+                    ],
+                    "pages": "1:1-1:38",
+                    "booktitle": "SIGGRAPH Courses"
+                },
+                {
+                    "title": "Microfacet Theory for Non-Uniform Heightfields.",
+                    "type": "inproceedings",
+                    "year": "2023",
+                    "author_name_list": [
+                        "Eugene d'Eon",
+                        "Benedikt Bitterli",
+                        "Andrea Weidlich",
+                        "Tizian Zeltner"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3588432.3591486"
+                    ],
+                    "pages": "3:1-3:10",
+                    "booktitle": "SIGGRAPH (Conference Paper Track)"
+                },
+                {
+                    "title": "A bidirectional formulation for Walk on Spheres.",
+                    "type": "article",
+                    "year": "2022",
+                    "author_name_list": [
+                        "Yang Qi",
+                        "Dario Seyb",
+                        "Benedikt Bitterli",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://www.wikidata.org/entity/Q114082244",
+                        "https://doi.org/10.1111/cgf.14586"
+                    ],
+                    "volume": "41",
+                    "pages": "51-62",
+                    "journal": "Comput. Graph. Forum"
+                },
+                {
+                    "title": "A Position-Free Path Integral for Homogeneous Slabs and Multiple Scattering on Smith Microfacets.",
+                    "type": "article",
+                    "year": "2022",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Eugene d'Eon"
+                    ],
+                    "ee_list": [
+                        "https://www.wikidata.org/entity/Q114082242",
+                        "https://doi.org/10.1111/cgf.14589"
+                    ],
+                    "volume": "41",
+                    "pages": "93-104",
+                    "journal": "Comput. Graph. Forum"
+                },
+                {
+                    "title": "Unbiased and consistent rendering using biased estimators.",
+                    "type": "article",
+                    "year": "2022",
+                    "author_name_list": [
+                        "Zackary Misso",
+                        "Benedikt Bitterli",
+                        "Iliyan Georgiev",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3528223.3530160"
+                    ],
+                    "volume": "41",
+                    "pages": "48:1-48:13",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Generalized resampled importance sampling: foundations of ReSTIR.",
+                    "type": "article",
+                    "year": "2022",
+                    "author_name_list": [
+                        "Daqi Lin",
+                        "Markus Kettunen 0001",
+                        "Benedikt Bitterli",
+                        "Jacopo Pantaleoni",
+                        "Cem Yuksel",
+                        "Chris Wyman"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3528223.3530158"
+                    ],
+                    "volume": "41",
+                    "pages": "75:1-75:23",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "A Position-Free Path Integral for Homogeneous Slabs and Multiple Scattering on Smith Microfacets.",
+                    "type": "article",
+                    "year": "2022",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Eugene d'Eon"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.48550/arXiv.2205.00587"
+                    ],
+                    "volume": "abs/2205.00587",
+                    "journal": "CoRR"
+                },
+                {
+                    "title": "Decorrelating ReSTIR Samplers via MCMC Mutations.",
+                    "type": "article",
+                    "year": "2022",
+                    "author_name_list": [
+                        "Rohan Sawhney",
+                        "Daqi Lin",
+                        "Markus Kettunen 0001",
+                        "Benedikt Bitterli",
+                        "Ravi Ramamoorthi",
+                        "Chris Wyman",
+                        "Matt Pharr"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.48550/arXiv.2211.00166"
+                    ],
+                    "volume": "abs/2211.00166",
+                    "journal": "CoRR"
+                },
+                {
+                    "title": "Spatiotemporal reservoir resampling for real-time ray tracing with dynamic direct lighting.",
+                    "type": "article",
+                    "year": "2020",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Chris Wyman",
+                        "Matt Pharr",
+                        "Peter Shirley",
+                        "Aaron E. Lefohn",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3386569.3392481"
+                    ],
+                    "volume": "39",
+                    "pages": "148",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Photon surfaces for robust, unbiased volumetric density estimation.",
+                    "type": "article",
+                    "year": "2019",
+                    "author_name_list": [
+                        "Xi Deng",
+                        "Shaojie Jiao",
+                        "Benedikt Bitterli",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3306346.3323041"
+                    ],
+                    "volume": "38",
+                    "pages": "46:1-46:12",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Selectively metropolised Monte Carlo light transport simulation.",
+                    "type": "article",
+                    "year": "2019",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3355089.3356578",
+                        "https://www.wikidata.org/entity/Q126837856"
+                    ],
+                    "volume": "38",
+                    "pages": "153:1-153:10",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Reversible Jump Metropolis Light Transport Using Inverse Mappings.",
+                    "type": "article",
+                    "year": "2018",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Wenzel Jakob",
+                        "Jan Nov\u00e1k",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3132704"
+                    ],
+                    "volume": "37",
+                    "pages": "1",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "A radiative transfer framework for non-exponential media.",
+                    "type": "article",
+                    "year": "2018",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Srinath Ravichandran",
+                        "Thomas M\u00fcller 0013",
+                        "Magnus Wrenninge",
+                        "Jan Nov\u00e1k",
+                        "Steve Marschner",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://www.wikidata.org/entity/Q115522538",
+                        "https://doi.org/10.1145/3272127.3275103"
+                    ],
+                    "volume": "37",
+                    "pages": "225",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Beyond points and beams: higher-dimensional photon samples for volumetric light transport.",
+                    "type": "article",
+                    "year": "2017",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3072959.3073698"
+                    ],
+                    "volume": "36",
+                    "pages": "112:1-112:12",
+                    "journal": "ACM Trans. Graph."
+                },
+                {
+                    "title": "Reversible Jump Metropolis Light Transport using Inverse Mappings.",
+                    "type": "article",
+                    "year": "2017",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Wenzel Jakob",
+                        "Jan Nov\u00e1k",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "http://arxiv.org/abs/1704.06835"
+                    ],
+                    "volume": "abs/1704.06835",
+                    "journal": "CoRR"
+                },
+                {
+                    "title": "An efficient denoising algorithm for global illumination.",
+                    "type": "inproceedings",
+                    "year": "2017",
+                    "author_name_list": [
+                        "Michael Mara",
+                        "Morgan McGuire",
+                        "Benedikt Bitterli",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/3105762.3105774"
+                    ],
+                    "pages": "3:1-3:7",
+                    "booktitle": "High Performance Graphics"
+                },
+                {
+                    "title": "A Practical and Controllable Hair and Fur Model for Production Path Tracing.",
+                    "type": "article",
+                    "year": "2016",
+                    "author_name_list": [
+                        "Matt Jen-Yuan Chiang",
+                        "Benedikt Bitterli",
+                        "Chuck Tappan",
+                        "Brent Burley"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1111/cgf.12830"
+                    ],
+                    "volume": "35",
+                    "pages": "275-283",
+                    "journal": "Comput. Graph. Forum"
+                },
+                {
+                    "title": "Nonlinearly Weighted First-order Regression for Denoising Monte Carlo Renderings.",
+                    "type": "article",
+                    "year": "2016",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Fabrice Rousselle",
+                        "Bochang Moon",
+                        "Jos\u00e9 Antonio Iglesias Guiti\u00e1n",
+                        "David Adler",
+                        "Kenny Mitchell",
+                        "Wojciech Jarosz",
+                        "Jan Nov\u00e1k"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1111/cgf.12954"
+                    ],
+                    "volume": "35",
+                    "pages": "107-117",
+                    "journal": "Comput. Graph. Forum"
+                },
+                {
+                    "title": "Bilateral Regularization in Reproducing Kernel Hilbert Spaces for Discontinuity Preserving Image Registration.",
+                    "type": "inproceedings",
+                    "year": "2016",
+                    "author_name_list": [
+                        "Christoph Jud",
+                        "Nadia M\u00f6ri",
+                        "Benedikt Bitterli",
+                        "Philippe C. Cattin"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1007/978-3-319-47157-0_2"
+                    ],
+                    "pages": "10-17",
+                    "booktitle": "MLMI@MICCAI"
+                },
+                {
+                    "title": "Portal-Masked Environment Map Sampling.",
+                    "type": "article",
+                    "year": "2015",
+                    "author_name_list": [
+                        "Benedikt Bitterli",
+                        "Jan Nov\u00e1k",
+                        "Wojciech Jarosz"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1111/cgf.12674"
+                    ],
+                    "volume": "34",
+                    "pages": "13-19",
+                    "journal": "Comput. Graph. Forum"
+                },
+                {
+                    "title": "A practical and controllable hair and fur model for production path tracing.",
+                    "type": "inproceedings",
+                    "year": "2015",
+                    "author_name_list": [
+                        "Matt Jen-Yuan Chiang",
+                        "Benedikt Bitterli",
+                        "Chuck Tappan",
+                        "Brent Burley"
+                    ],
+                    "ee_list": [
+                        "https://doi.org/10.1145/2775280.2792559"
+                    ],
+                    "pages": "23:1",
+                    "booktitle": "SIGGRAPH Talks"
+                }
+            ]
+        }
+    ]
+}

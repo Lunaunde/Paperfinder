@@ -4,7 +4,8 @@ import json
 import questionary
 import json_file_operations
 from ui.cli import run_cli
-from modles import Author, Paper
+from models import Author, Paper, Authors
+import api.dblp as dblp
 
 def load_xml_optional_subele(target_dict,element,subele_name):
     if element.find(subele_name) != None:
@@ -60,25 +61,19 @@ def papers_data_merge(existing_papers, new_papers):
     return existing_papers
                 
 def main():
-    global authors_list
+    authors = Authors()
     load_success , data_dict = json_file_operations.file_to_dict('authors_papers_data.json')
-    for sigle_author in data_dict['authors_list']:
-        authors_list.append(Author.from_dict(sigle_author))
-    if load_success == False:
-        authors_list = []
-    # authors_papers_data, is_jsonfile_load = jsonfile_to_dict('authors_papers_data.json')
-    # if is_jsonfile_load == False:
-    #     authors_papers_data['authorlist'] = []
-    # running = True
-    # print('Welcome to the PaperFinder! Use "help" command to see available commands.')
-    # while running:
-    #     command = input()
-    #     running = command_processing(command)
-        
-    # dict_to_jsonfile('authors_papers_data.json',authors_papers_data)
-    # return
-    data_dict['authors_list'] = authors_list.to_dict()
+    if load_success == False or 'authors_list' not in data_dict:
+        print('No authors_papers_data.json file found or it\'s format error, creating a new one...')
+    else:
+        authors = Authors.from_dict(data_dict)
+    
+    run_cli(authors)
+
+    print('Exiting...')
+    data_dict = authors.to_dict()
     json_file_operations.dict_to_file('authors_papers_data.json',data_dict)
 
 if __name__ == '__main__':
+    #dblp.test()
     main()

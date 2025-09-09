@@ -1,98 +1,217 @@
-def command_processing(command):
-    if command.split()[0] == 'help':
-        print(
-        '0. exit - exit program\n'
-        '1. author\n'
-        'author list - show mainly info of all authors in list\n'
-        'author add <name> <displayName>(optional) - add a new author to authorlist, use "_" to replace space in name\n'
-        'author get <name/displayName> - get author info by name\n'
-        'author modify <name/displayName> [displayName/dblpid] [auto/set] <value> - modify author info by name.\n'
-        'author remove <name> - remove an author from authorlist by name\n'
-        )
-    elif command.split()[0] == 'author':
-        if len(command.split()) < 2:
-            print('Useage: author <list/add/info/modify/remove> ... Or use "help" command to see available commands')
-        elif command.split()[1] == 'list':
-            if len(authors_papers_data['authorlist']) == 0:
-                print('No author in authorlist, use "author add ..." to add a new author')
-            else:
-                for index, author in enumerate(authors_papers_data['authorlist']):
-                    print(f'{index+1}. {author.get("displayName",author["name"])} (name: {author["name"]}, dblp id: {author["dblpid"]})')
-        elif command.split()[1] == 'add':
-            if len(command.split()) < 3:
-                print('Usage: author add <name> <displayName>(optional), use "_" to replace space in name')
-            for author in authors_papers_data['authorlist']:
-                if author['name'] == command.split()[2]:
-                    print(f'Name {command.split()[2]} already existed in authorlist')
-                    return True
-                if author.get('displayName') == command.split()[2]:
-                    print(f'Name "{command.split()[2]}" already existed as displayName in authorlist')
-                    return True
-                if author['name'] == command.split()[3]:
-                    print(f'DisplayName {command.split()[3]} already existed as name in authorlist')
-                    return True
-                if author.get('displayName') == command.split()[3]:
-                    print(f'DisplayName {command.split()[3]} already existed as in authorlist')
-                    return True
-            new_author = {'name':command.split()[2],'dblpid':'','papers':[]}
-            if len(command.split()) >= 4:
-                new_author['displayName'] = command.split()[3]
-            authors_papers_data['authorlist'].append(new_author)
-            print(f'Successfully added author: {new_author.get("displayName",new_author["name"])} (name: {new_author["name"]}) to authorlist')
-        elif command.split()[1] == 'info':
-            if len(command.split()) < 3:
-                print('Usage: author info <name/displayName>')
-                return True
-            find_flag = False
-            for author in authors_papers_data['authorlist']:
-                if author['name'] == command.split()[2] or author.get('displayName') == command.split()[2]:
-                    find_flag = True
-                    print(f'Found author: {author.get("displayName",author["name"])} (name: {author["name"]}, dblp id: {author["dblpid"]})')
-                    print(f'{len(author["papers"])} papers found:')
-                    for index, paper in enumerate(author['papers']):
-                        print(f'{index+1}. {paper["title"]} - ({paper["year"]})\n')
-            if find_flag == False:
-                print(f'No author found for name/displayName: {command.split()[2]}')
-        elif command.split()[1] == 'modify':
-            if command.split()[2] == 'displayName':
-                if command.split()[3] == 'auto':
-                    print('Auto displayName not supported yet')
-                elif command.split()[3] == 'set':
-                    if command.split()[4] == None:
-                        print('Error: no value provided for displayName')
-                    else:
-                        if author['name'] == command.split()[3]:
-                            print(f'DisplayName {command.split()[3]} already existed as name in authorlist')
-                        elif author.get('displayName') == command.split()[3]:
-                            print(f'DisplayName {command.split()[3]} already existed as in authorlist')
-        elif command.split()[1] == 'remove':
-            find_flag = False
-            for index, author in enumerate(authors_papers_data['authorlist']):
-                if author['name'] == command.split()[2] or author.get('displayName') == command.split()[2]:
-                    find_flag = True
-                    print(
-                        f'Found author: {author.get("displayName",author["name"])} (name: {author["name"]})\n'
-                        'Are you sure you want to remove this author?\n'
-                        f'Please type "remove {author["name"]}" to confirm, or type anything else to cancel.'
-                    )
-                    surliy=input()
-                    if surliy == 'remove ' + author["name"]:
-                        print(f'Author {author["name"]} removed from authorlist')
-                        authors_papers_data['authorlist'].pop(index)
-                    else:
-                        print('Operation cancelled')
-            if find_flag == False:
-                print(f'No author found for name/displayName: {command.split()[2]}')        
-        else:
-            print('Useage: author <list/add/info/modify/remove> ... Or use "help" command to see available commands')
-    elif command.split()[0] == 'exit':
-        print('Exiting...')
-        return False 
+from models import Author, Paper
+from api import dblp
+
+def command_processing(command_list,authors):
+    if len(command_list) < 1: return True
+    elif command_list[0] == 'help':
+        command_help()
+    elif command_list[0] == 'author':
+        command_author(command_list[1:],authors)
+    elif command_list[0] == 'paper':
+        command_paper(command_list[1:],authors)
+    elif command_list[0] == 'exit':
+        return False
     else:
         print('Unknown command, use "help" command to see available commands')
     return True
-def run_cli():
+
+def command_help():
+    print(
+    'Commands:\n'
+    '0. exit - exit program\n'
+    '1. author\n'
+    'author list - show mainly info of all authors in list\n'
+    'author add <name> <displayName>(optional) - add a new author to authorlist, use "_" to replace space in name\n'
+    'author info <name/displayName> - get author info by name\n'
+    'author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value> - modify author info by name.\n'
+    'author remove <name> - remove an author from authorlist by name\n'
+    '2. paper\n'
+    'paper get <name/displayName> - get papers of author by name'
+    'paper update <name/displayName>(optional) - update papers of author (or all)'
+)
+
+def command_author(command_list,authors):
+    if len(command_list)<1:
+        print('Useage: author <list/add/info/modify/remove> ... Or use "help" command to see available commands')
+    elif command_list[0] == 'list':
+        command_author_list(authors)
+    elif command_list[0] == 'add':
+        command_author_add(command_list[1:],authors)
+    elif command_list[0] == 'info':
+        command_author_info(command_list[1:],authors)
+    elif command_list[0] == 'modify':
+        command_author_modify(command_list[1:],authors)
+    elif command_list[0] == 'remove':
+        command_author_remove(command_list[1:],authors)
+    else:
+        print('Usage: author <list|add|info|modify|remove> ... Or use "help" command to see available commands')
+    return  
+def command_author_list(authors):
+    if authors.count() == 0:
+        print('No author in authorlist, use "author add ..." to add a new author')
+    else:
+        for info in authors.info_list():
+            print(info)
+    return
+def command_author_add(command_list,authors):
+    if len(command_list) < 1 or len(command_list) > 2:
+        print('Usage: author add <name> <displayName>(optional), use "_" to replace space in name')
+    elif len(command_list) == 1:
+        success , message = authors.append(Author(command_list[0]))
+    elif len(command_list) == 2:
+        success , message = authors.append(Author(command_list[0],command_list[1]))
+    print(message)
+    return
+def command_author_info(command_list,authors):
+    if len(command_list) < 1 or len(command_list) > 1:
+        print('Usage: author info <name/displayName>')
+    else:
+        target_author , success = authors.find(command_list[0])
+        if success:
+            print(target_author.info())
+        else:
+            print(f'No author found for name/displayName: {command_list[0]}')
+def command_author_modify(command_list,authors):
+    if len(command_list) < 2 or len(command_list) > 4:
+        print('Usage: author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value>')
+    else:
+        target_author , success = authors.find(command_list[0])
+        if success: 
+            if command_list[1] == 'displayName':
+                if command_list[2] == 'search':
+                    print('Search displayName not supported yet')
+                elif command_list[2] == 'set':
+                    success , message = target_author.safe_set_display_name(command_list[3])
+                    if success:
+                        print(message)
+                else:
+                    print('Usage: author displayName [set] <displayName>]')
+            elif command_list[1] == 'dblpid':
+                if command_list[2] == 'search':
+                    if len(command_list) == 3:
+                        print("Searching author...")
+                        dblpid_search_loop(target_author.name,target_author)
+                    elif len(command_list) == 4:
+                        print("Searching author...")
+                        dblpid_search_loop(command_list[3],target_author)
+                    else:
+                        print('Usage: author dblpID search <searchName>(optional) - It will use author\'s name to fetch author\'s dblpID')
+                        
+                elif command_list[2] == 'set':
+                    success , message = target_author.safe_set_dblpid(command_list[3])
+                    print(message)
+                else:
+                    print('Usage: author dblpid [search/set] <dblpid>')
+            else:
+                print('Usage: author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value>')
+        else:
+            print(f'No author found for name/displayName: {command_list[0]}')
+def dblpid_search_loop(search_name,target_author):
+    result , success , message = dblp.search_author(search_name)
+    print(message)
+    if not success:
+        return
+    print(f'prefect hit and full hit:')
+    for index , single_author in enumerate(result):
+        #single_author['papertitle'] = dblp.find_a_paper_by_dblpid(single_author['dblpid'])
+        if(single_author['hit'] == 'partial'):
+            break
+        print(f'{index+1}. {single_author["name"]} (dblp id: {single_author["dblpid"]}, match type: {single_author["hit"]})')
+    
+    loop = True
+    print('you can use command behind:\n'
+            'set <index> - set as the dblpid of the index-th author\n'
+            'info <index> - show a paper\'s info of the author with index\n'
+            'showall - show all hits\n'
+            '<anything else> - cancel modify')
+    while loop:
+        command = input()
+        command_list = command.split()
+        if command_list[0] == 'set':
+            try: 
+                target_author.dblpid = result[int(command_list[1])-1]['dblpid']
+                print(f'Successly set the dblpid of {target_author.name} to {target_author.dblpid}') 
+                loop = False
+            except (ValueError,IndexError,TypeError):
+                print('Usage: set <index> - please make sure you input a illegal index')
+        elif command_list[0] == 'info':
+            print('Getting paper info...')
+            title , success = dblp.find_a_paper_by_dblpid(result[int(command_list[1])-1]['dblpid'])
+            print(f'One of the papers of {result[int(command_list[1])-1]['name']} is: {title}')
+        elif command_list[0] == 'showall':
+            for index,single_author in enumerate(result):
+                print(f'{index+1}. {single_author['name']} (dblp id: {single_author['dblpid']}, match type: {single_author['hit']})')
+        else:
+            loop = False
+    return
+def command_author_remove(command_list,authors):
+    if len(command_list) < 1 or len(command_list) > 1:
+        print('Usage: author remove <name/displayName>')
+    else:
+        target_author , success = authors.find(command_list[0])
+        if success:
+            print(f'Find author: {target_author.short_info()}. Are you sure to remove him/her/it?')
+            surely = input(f'type: "remove {target_author.name}" to remove it or type anything else to cancel.\n')
+            if surely == 'remove ' + target_author.name:
+                authors.remove(target_author)
+                print(f'Successful remove {command_list[0]}')
+            else:
+                print('Canceled')
+        else:
+            print(f'No author found for name/displayName: {command_list[0]}')
+
+def command_paper(command_list,authors):
+    if len(command_list) < 1:
+        print('Usage: paper <get/update> ... Or use "help" command to see available commands')
+    elif command_list[0] == 'get':
+        command_paper_get(command_list[1:],authors)
+    elif command_list[0] == 'update':
+        command_paper_update(command_list[1:],authors)
+    else:
+        print('Usage: paper <get/update> ... Or use "help" command to see available commands')
+def command_paper_get(command_list,authors):
+    if len(command_list) > 1 or len(command_list) < 1:
+        print('Usage: paper get <name/displayName>(optional) - get papers of author')
+    elif len(command_list) == 1:
+        target_author , success = authors.find(command_list[0])
+        if success:
+            print(f'{target_author.get_shown_name()} has {target_author.papers.count()} papers')
+        for index , sigle_paper in enumerate(target_author.papers.papers_list):
+            print(f'{index+1}. {sigle_paper.title} - ({sigle_paper.year})')
+            
+def command_paper_update(command_list,authors):
+    if len(command_list) > 1:
+        print('Usage: paper update <name/displayName>(optional) - update papers of author (or all)')
+    elif len(command_list) == 1:
+        target_author , success = authors.find(command_list[0])
+        if success:
+            if target_author.dblpid == '':
+                print(f'{target_author.get_shown_name()} has no dblpID, please use "author modify dblpid [search/set] <value>" to find one')
+            else :
+                print(f'Processing...')
+                new_papers = dblp.fetch_author_papers(target_author.dblpid)
+                new_papers_count = target_author.papers.merge(new_papers)
+                print(f'Successfully update {new_papers_count} papers of {target_author.get_shown_name()}')
+        else:
+            print(f'No author found for name/displayName: {command_list[0]}')
+    elif len(command_list) == 0:
+        print(f'Processing...')
+        for single_author in authors.authors_list:
+            all_new_papers_count = 0
+            if single_author.dblpid == '':
+                continue
+            else:
+                new_papers = dblp.fetch_author_papers(single_author.dblpid)
+                new_papers_count = single_author.papers.merge(new_papers)
+                all_new_papers_count += new_papers_count
+                if new_papers_count != 0:
+                    print(f'Successfully update {new_papers_count} papers of {single_author.get_shown_name()}')
+        print(f'Successfully update {all_new_papers_count} papers in total')
+        
+def run_cli(authors):
     running=True
+    print('Welcome to paperfinder cli, try "help" command to see available commands')
     while running:
         command = input()
-        running = command_processing(command)
+        running = command_processing(command.split(),authors)
+    return
