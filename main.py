@@ -7,6 +7,7 @@ import excel_file_operations as efo
 from ui.cli import run_cli
 from models import Author, Paper, Authors
 import api.dblp as dblp
+import api.semantic_scholar as s2
        
 def main():
     authors = Authors()
@@ -24,4 +25,5 @@ def main():
     jfo.dict_to_file('authors_papers_data.json',data_dict)
 
 if __name__ == '__main__':
+    #s2.test()
     main()

@@ -180,8 +180,8 @@ class Paper:
         return (year, month)
 
 class Papers:
-    def __init__(self, papers_list:list=[]):
-        self.papers_list = papers_list
+    def __init__(self, papers_list: Optional[list] = None):
+        self.papers_list = papers_list or []
 
     @classmethod
     def from_dict(cls,data:dict):
