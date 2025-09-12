@@ -133,6 +133,7 @@ class Paper:
         self.number = number
         self.journal = journal
         self.booktitle = booktitle
+        self.need_manual_check = need_manual_check
 
     @classmethod
     def from_dict(cls,data:dict):

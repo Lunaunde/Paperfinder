@@ -1,5 +1,6 @@
 from models import Author, Paper
 from api import dblp
+import excel_file_operations as efo
 
 def command_processing(command_list,authors):
     if len(command_list) < 1: return True
@@ -9,6 +10,8 @@ def command_processing(command_list,authors):
         command_author(command_list[1:],authors)
     elif command_list[0] == 'paper':
         command_paper(command_list[1:],authors)
+    elif command_list[0] == 'excel':
+        command_excel(command_list[1:],authors)
     elif command_list[0] == 'exit':
         return False
     else:
@@ -26,8 +29,10 @@ def command_help():
     'author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value> - modify author info by name.\n'
     'author remove <name> - remove an author from authorlist by name\n'
     '2. paper\n'
-    'paper get <name/displayName> - get papers of author by name'
-    'paper update <name/displayName>(optional) - update papers of author (or all)'
+    'paper get <name/displayName> - get papers of author by name\n'
+    'paper update <name/displayName>(optional) - update papers of author (or all)\n'
+    '3. excel\n'
+    'excel output [authors/papers] <name/displayName>(optional) - output authors list or papers list to excel\n'
 )
 
 def command_author(command_list,authors):
@@ -72,7 +77,7 @@ def command_author_info(command_list,authors):
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
 def command_author_modify(command_list,authors):
-    if len(command_list) < 2 or len(command_list) > 4:
+    if len(command_list) < 3 or len(command_list) > 4:
         print('Usage: author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value>')
     else:
         target_author , success = authors.find(command_list[0])
@@ -207,7 +212,38 @@ def command_paper_update(command_list,authors):
                 if new_papers_count != 0:
                     print(f'Successfully update {new_papers_count} papers of {single_author.get_shown_name()}')
         print(f'Successfully update {all_new_papers_count} papers in total')
-        
+    
+    
+def command_excel(command_list,authors):
+    if len(command_list) < 1:
+        print('Usage: excel output [authors/papers] ... Or use "help" command to see available commands')
+    elif command_list[0] == 'output':
+        command_excel_output(command_list[1:],authors)
+            
+
+def command_excel_output(command_list,authors):
+    if len(command_list) < 1 or len(command_list) > 1:
+        print('Usage: excel output [authors/papers]')
+    elif command_list[0] == 'authors':
+        efo.output_authors(authors)
+        print('Successfully output all authors')
+    elif command_list[0] == 'papers':
+        if len(command_list) == 1:
+            for single_author in authors.authors_list:
+                efo.output_author_papers(single_author)
+            print('Successfully output all papers')
+        elif len(command_list) == 2:
+            target_author , success = authors.find(command_list[1])
+            if success:
+                efo.output_author_papers(target_author)
+                print(f'Successfully output papers of {target_author.get_shown_name()}')
+            else:
+                print(f'No author found for name/displayName: {command_list[1]}')
+        else:
+            print('Usage: excel output papers <name/displayName>(optional) - output papers of author (or all)')
+
+
+
 def run_cli(authors):
     running=True
     print('Welcome to paperfinder cli, try "help" command to see available commands')
