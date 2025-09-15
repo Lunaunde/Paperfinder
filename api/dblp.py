@@ -4,7 +4,7 @@ from collections import Counter
 from models import Paper,Papers
 import json_file_operations
 
-def search_author(author_name):
+def search_author(author_name:str):
     try:
         name_part = author_name.lower().split('_')
         url = f'https://dblp.org/search/author/api?q='
@@ -89,7 +89,7 @@ def fetch_author_papers(pid:str):
     if response.status_code != 200:
         print(f'Error:request failed, status code: {response.status_code}')
         #print(f'Error info:\n{response.text}')
-        return False
+        return None
     
     author_info_xml_text = response.text
     author_info_xml = ET.fromstring(author_info_xml_text)
@@ -103,14 +103,27 @@ def fetch_author_papers(pid:str):
                 paper.author_name_list.append(author.text)
             paper.title = paper_xml.find('title').text
             paper.year = paper_xml.find('year').text
-            paper.month = safe_find_xml_element(paper_xml,'month')
+
+            month = safe_find_xml_element(paper_xml,'month')
+            months_map = {
+            'january': 1, 'february': 2, 'march': 3, 'april': 4,
+            'may': 5, 'june': 6, 'july': 7, 'august': 8,
+            'september': 9, 'october': 10, 'november': 11, 'december': 12
+            }
+            month = months_map.get(month.lower(), '')
+            paper.month = month
+
             paper.volume = safe_find_xml_element(paper_xml,'volume')
             paper.pages = safe_find_xml_element(paper_xml,'pages')
             paper.number = safe_find_xml_element(paper_xml,'number')
-            paper.journal = safe_find_xml_element(paper_xml,'journal')
-            paper.booktitle = safe_find_xml_element(paper_xml,'booktitle')
+            paper.location = safe_find_xml_element(paper_xml,'journal') or safe_find_xml_element(paper_xml,'booktitle')
             for ee in paper_xml.findall('ee'):
-                paper.ee_list.append(ee.text)
+                if ee.text.startswith('https://doi.org/'):
+                    paper.doi = ee.text
+
+            paper.tag_preprint()
+            paper.cvrp_year_fix()
+
             papers.append(paper)
     return papers
 

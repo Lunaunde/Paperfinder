@@ -48,8 +48,7 @@ def output_author_papers(author):
         data['year'].append(paper.year)
         author_list_str = ','.join(paper.author_name_list)
         data['authors'].append(author_list_str)
-        ee_list_str = ','.join(paper.ee_list)
-        data['ee'].append(ee_list_str)
+        data['doi'].append(paper.doi)
 
         data['month'].append(paper.month)
         data['volume'].append(paper.volume)

@@ -1,5 +1,6 @@
 from models import Author, Paper
 from api import dblp
+from api import openalex as oa
 import excel_file_operations as efo
 
 def command_processing(command_list,authors):
@@ -26,7 +27,7 @@ def command_help():
     'author list - show mainly info of all authors in list\n'
     'author add <name> <displayName>(optional) - add a new author to authorlist, use "_" to replace space in name\n'
     'author info <name/displayName> - get author info by name\n'
-    'author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value> - modify author info by name.\n'
+    'author modify <name/displayName> [displayName/dblpid/oaid] [search/set] <searchName/value> - modify author info by name.\n'
     'author remove <name> - remove an author from authorlist by name\n'
     '2. paper\n'
     'paper get <name/displayName> - get papers of author by name\n'
@@ -78,7 +79,7 @@ def command_author_info(command_list,authors):
             print(f'No author found for name/displayName: {command_list[0]}')
 def command_author_modify(command_list,authors):
     if len(command_list) < 3 or len(command_list) > 4:
-        print('Usage: author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value>')
+        print('Usage: author modify <name/displayName> [displayName/dblpid/oaid] [search/set] <searchName/value>')
     else:
         target_author , success = authors.find(command_list[0])
         if success: 
@@ -100,15 +101,30 @@ def command_author_modify(command_list,authors):
                         print("Searching author...")
                         dblpid_search_loop(command_list[3],target_author)
                     else:
-                        print('Usage: author dblpID search <searchName>(optional) - It will use author\'s name to fetch author\'s dblpID')
+                        print('Usage: author modify <name/displayName> dblpID search <searchName>(optional) - It will use author\'s name to fetch author\'s dblpID')
                         
                 elif command_list[2] == 'set':
                     success , message = target_author.safe_set_dblpid(command_list[3])
                     print(message)
                 else:
                     print('Usage: author dblpid [search/set] <dblpid>')
+            elif command_list[1] == 'oaid':
+                if command_list[2] == 'search':
+                    if len(command_list) == 3:
+                        print("Searching author...")
+                        oaid_search(target_author.name,target_author)
+                    elif len(command_list) == 4:
+                        print("Searching author...")
+                        oaid_search(command_list[3],target_author)
+                    else:
+                        print('Usage: author modify <name/displayName> oaid search <searchName>(optional) - It will use author\'s name to fetch author\'s dblpID')        
+                elif command_list[2] == 'set':
+                    success , message = target_author.safe_set_dblpid(command_list[3])
+                    print(message)
+                else:
+                    print('Usage: author dblpid [search/set] <searchName/value>')    
             else:
-                print('Usage: author modify <name/displayName> [displayName/dblpid] [search/set] <searchName/value>')
+                print('Usage: author modify <name/displayName> [displayName/dblpid/oaid] [search/set] <searchName/value>')
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
 def dblpid_search_loop(search_name,target_author):
@@ -148,6 +164,14 @@ def dblpid_search_loop(search_name,target_author):
                 print(f'{index+1}. {single_author['name']} (dblp id: {single_author['dblpid']}, match type: {single_author['hit']})')
         else:
             loop = False
+    return
+def oaid_search(search_name,target_author):
+    result , success , message = oa.search_author_id(search_name)
+    print(message)
+    if not success:
+        return
+    else:
+        target_author.oaid = result
     return
 def command_author_remove(command_list,authors):
     if len(command_list) < 1 or len(command_list) > 1:
@@ -190,19 +214,25 @@ def command_paper_update(command_list,authors):
     elif len(command_list) == 1:
         target_author , success = authors.find(command_list[0])
         if success:
+            print(f'Processing...')
+            new_papers_count = 0
             if target_author.dblpid == '':
                 print(f'{target_author.get_shown_name()} has no dblpID, please use "author modify dblpid [search/set] <value>" to find one')
             else :
-                print(f'Processing...')
                 new_papers = dblp.fetch_author_papers(target_author.dblpid)
-                new_papers_count = target_author.papers.merge(new_papers)
-                print(f'Successfully update {new_papers_count} papers of {target_author.get_shown_name()}')
+                new_papers_count += target_author.papers.merge(new_papers)
+            if target_author.oaid == '':
+                print(f'{target_author.get_shown_name()} has no OpenAlexID, please use "author modify oaid [search/set] <value>" to find one')
+            else:
+                new_papers = oa.fetch_author_papers(target_author.oaid)
+                new_papers_count += target_author.papers.merge(new_papers)
+            print(f'Successfully update {new_papers_count} papers of {target_author.get_shown_name()}')
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
     elif len(command_list) == 0:
         print(f'Processing...')
+        all_new_papers_count = 0
         for single_author in authors.authors_list:
-            all_new_papers_count = 0
             if single_author.dblpid == '':
                 continue
             else:

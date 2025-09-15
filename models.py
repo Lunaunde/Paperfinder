@@ -1,10 +1,11 @@
 from typing import Tuple, Optional
 
 class Author:
-    def __init__ (self, name:str, display_name:str='', dblpid:str='', papers:Optional['Papers']=None):
+    def __init__ (self, name:str, display_name:str='', dblpid:str='',oaid:str='', papers:Optional['Papers']=None):
         self.name = name
         self.display_name = display_name
         self.dblpid = dblpid
+        self.oaid = oaid
         self.papers = papers or Papers()
 
     @classmethod
@@ -18,6 +19,7 @@ class Author:
             name = data.get('name',''),
             display_name = data.get('display_name',''),
             dblpid = data.get('dblpid',''),
+            oaid = data.get('oaid',''),
             papers = papers
         )
     
@@ -37,11 +39,11 @@ class Author:
         return self.display_name if self.display_name != '' else self.name
     
     def short_info(self) -> str:
-        return f'{self.get_shown_name()} (name: {self.name}, dblp id: {self.dblpid})'
+        return f'{self.get_shown_name()} (name: {self.name}, dblp id: {self.dblpid}, openAlex id: {self.oaid})'
     def info(self) -> str:
-        info = f'{self.get_shown_name()} (name: {self.name}, dblp id: {self.dblpid})\n'
-        info += f'Found {len(self.paper_list)} papers:'
-        for index, paper in enumerate(self.paper_list):
+        info = f'{self.get_shown_name()} (name: {self.name}, dblp id: {self.dblpid}, openAlex id: {self.oaid})\n'
+        info += f'Found {len(self.papers.papers_list)} papers:'
+        for index, paper in enumerate(self.papers.papers_list):
             info += f'\n{index+1}. {paper.title} - ({paper.year})'
         return info
     
@@ -119,65 +121,90 @@ class Authors:
 
 
 class Paper:
-    def __init__ (self, title:str='', type:str='', year:str='',  author_name_list: Optional[list] = None, 
-                ee_list: Optional[list] = None, month:str='', volume:str='', pages:str='', number:str='',
-                journal:str='', booktitle:str='', need_manual_check:str=''):
+    def __init__ (self, title:str='', type:str='', year:str='', month:str='', day:str='' , 
+            author_name_list: Optional[list] = None, doi:str='', location:str='', volume:str='',
+            number:str='', pages:str='', fwci:str='', need_manual_check:str=''):
         self.title = title
         self.type = type
         self.year = year
-        self.author_name_list = author_name_list or []
-        self.ee_list = ee_list or []
         self.month = month
+        self.day = day
+        self.author_name_list = author_name_list or []
+        self.doi = doi
+        self.location = location
         self.volume = volume
-        self.pages = pages
         self.number = number
-        self.journal = journal
-        self.booktitle = booktitle
+        self.pages = pages
+        self.fwci = fwci
         self.need_manual_check = need_manual_check
 
     @classmethod
     def from_dict(cls,data:dict):
-        required_fields = ['title','type','year','author_name_list','ee_list']
+        required_fields = ['title','type','year','author_name_list']
         for field in required_fields:
             if field not in data:
+                print(f'error date:{data}')
                 raise ValueError(f'Missing required field {field} in data')
-        return cls(
-            title = data.get('title',''),
-            type = data.get('type',''),
-            year = data.get('year',''),
-            author_name_list = data.get('author_name_list',[]),
-            ee_list = data.get('ee_list',[]),
-            month = data.get('month',''),
-            volume = data.get('volume',''),
-            pages = data.get('pages',''),
-            journal = data.get('journal',''),
-            booktitle = data.get('booktitle',''),
-            need_manual_check = data.get('need_manual_check','')
-            )
+        allowed_fields = {
+        'title', 'type', 'year', 'month', 'day', 'author_name_list',
+        'doi', 'location', 'volume', 'number', 'pages', 'fwci', 'need_manual_check'
+        }
+    
+        filtered_data = {k: v for k, v in data.items() if k in allowed_fields}
+    
+        return cls(**filtered_data)
     
     def to_dict(self, include_empty=False):
         if include_empty:
             return self.__dict__
         else:
             return {k: v for k, v in self.__dict__.items() if v not in (None, '', [], {})}
-    def year_month_to_int(self) -> Tuple[int, int]:
-        year = int(self.year)
+    def year_month_day_to_int(self) -> Tuple[int, int, int]:
 
-        months_map = {
-            'january': 1, 'february': 2, 'march': 3, 'april': 4,
-            'may': 5, 'june': 6, 'july': 7, 'august': 8,
-            'september': 9, 'october': 10, 'november': 11, 'december': 12
-        }
+        if self.year:
+            year = int(self.year)
+        else:
+            year = 0
 
         if self.month:
-            try:
-                month = int(self.month)
-            except (ValueError, TypeError):
-                month = months_map.get(self.month.lower(), 1)  # 默认1月
+            month = int(self.month)
         else:
             month = 0
 
-        return (year, month)
+        if self.day:
+            day = int(self.day)
+        else:
+            day = 0
+
+        return (year, month , day)
+    
+    def update(self, new_paper:'Paper'):
+        for key, value in new_paper.__dict__.items():
+            if value:
+                setattr(self, key, value)
+
+    def tag_preprint(self):
+        if self.type == 'preprint':
+            return True
+        if 'arxiv' in self.doi.lower():
+            self.type = 'preprint'
+            return True
+        if 'corr' in self.location.lower():
+            self.type = 'preprint'
+            return True
+        return False
+    
+    def cvrp_year_fix(self) -> bool:
+        if 'cvpr' in self.location.lower():
+            try:
+                year = int(self.location[:4])
+                if year != self.year:
+                    self.location = f'{self.year}{self.location[4:]}'
+                    return True
+            except ValueError:
+                return False
+        return False
+
 
 class Papers:
     def __init__(self, papers_list: Optional[list] = None):
@@ -210,48 +237,34 @@ class Papers:
         return dict
     
     def append(self,new_paper:Paper) -> bool:
-        match_status = 'new'
         for paper in self.papers_list:
-            if new_paper.title == paper.title and new_paper.type == paper.type :
-                match_status = 'same title'
-                for ee in new_paper.ee_list:
-                   if ee in paper.ee_list:
-                        match_status = 'exist'
-                        break
-                if match_status == 'exist':
-                    merged_ee_list = list(set(paper.ee_list + new_paper.ee_list))
-                    paper.ee_list = merged_ee_list
-                    break
-
-                if (new_paper.journal == paper.journal and paper.journal != ''):
-                   match_status = 'same journal'
-                if (new_paper.booktitle == paper.booktitle and paper.booktitle != ''):
-                    match_status = 'same booktitle'
-                if (match_status == 'same journal' or match_status == 'same booktitle'):
-                    if((new_paper.volume == paper.volume and paper.volume != '') or
-                    (new_paper.pages == paper.pages and paper.pages != '' )or
-                    (new_paper.number == paper.number and paper.number != '')):
-                       match_status = 'NMC_SDM' # need manual check, suspiciously different metadata
+            if new_paper.title == paper.title :
+                if new_paper.type == paper.type and new_paper.type == 'preprint':
+                    if new_paper.doi == paper.doi:
+                        return False
+                    if new_paper.year_month_day_to_int() > paper.year_month_day_to_int():
+                        paper.update(new_paper)
+                        return False
                     else:
-                        match_status = 'NMC_UR' # need manual check, unknown relation
-                elif new_paper.year == paper.year:
-                    match_status = 'NMC_SY_DJ/B' # need manual check, same year, different journal/booktitle
+                        return False
+                elif new_paper.type == 'preprint' and paper.type != 'preprint':
+                    return False
+                elif new_paper.type != 'preprint' and paper.type == 'preprint':
+                    paper.update(new_paper)
+                    return False
+                elif new_paper.type != paper.type:
+                    continue
                 else:
-                    match_status = 'different'
-        if match_status == 'exist':
-            return False
-        else:
-            if match_status == 'NMC_SDM':
-                new_paper.need_manual_check = 'suspiciously different metadata'
-            elif match_status == 'NMC_UR':
-                new_paper.need_manual_check = 'unknown relation'
-            elif match_status == 'NMC_SY_DJ/B':
-                new_paper.need_manual_check = 'same year, different journal/booktitle'
-            self.papers_list.append(new_paper) # include 'new' and 'different' match_status
+                    if new_paper.doi == paper.doi:
+                        return False
+                    else:
+                        new_paper.need_manual_check = 'True'
+                        
+        self.papers_list.append(new_paper) 
         return True
 
     def sort(self):
-        self.papers_list.sort(key = lambda paper:paper.year_month_to_int(), reverse=True)
+        self.papers_list.sort(key = lambda paper:paper.year_month_day_to_int(), reverse=True)
 
     def merge(self,other: 'Papers') -> int:   
         new_papers_count = 0
