@@ -1,6 +1,6 @@
 import requests
 import json
-from models import Paper,Papers
+from models import Paper,Papers,Author
 
 def search_author_id(author_name:str):
     search_name=author_name.replace('_',' ')
@@ -18,12 +18,39 @@ def search_author_id(author_name:str):
     oaid = response_json['results'][0]['id'][21:]
     return oaid,True,f'Successly get {author_name}\'s OpenAlex ID: {oaid}'
 
+def build_initial_coauthor_list(author:Author,institution_id:str='i90610280'):
+    if author.oaid == '':
+        return False,f'Error: no OpenAlex ID for {author.get_shown_name()}'
+    
+    result = []
+    page = 1
+    while True:
+        url= f'https://api.openalex.org/works?page={page}&per-page=200&filter=authorships.author.id:{author.oaid},authorships.institutions.lineage:{institution_id}'
+        response = requests.get(url)
+
+        if response.status_code != 200:
+            return None,f'Error:request failed, status code: {response.status_code}'
+        
+        response_json = json.loads(response.text)
+        result.extend(response_json['results'])
+        if len(response_json['results']) < 200:
+            break
+        else:
+            page += 1
+
+    for single_paper in result:
+        for single_author in single_paper['authorships']:
+            author.add_name_to_coauthor_list(single_author['raw_author_name'])
+    
+    return True,f'Successfully built author net of {author.get_shown_name()}'
+
+
 def fetch_author_papers(oaid:str):
 
     result = []
     page = 1
     while True:
-        url= f'https://api.openalex.org/works?page={page}&per-page=200&filter=authorships.institutions.lineage:i90610280,authorships.author.id:{oaid}'
+        url= f'https://api.openalex.org/works?page={page}&per-page=200&filter=authorships.author.id:{oaid}'
         response = requests.get(url)
 
         if response.status_code != 200:
@@ -39,8 +66,17 @@ def fetch_author_papers(oaid:str):
     papers = Papers()
 
     for single_paper in result:
+
         paper = Paper()
-        paper.type = single_paper['type']
+
+        if single_paper['type'] == 'article':
+            if single_paper['type_crossref'] == 'journal-article':
+                paper.type = 'article'
+            elif single_paper['type_crossref'] == 'proceedings-article':
+                paper.type = 'inproceedings'
+        else:
+            paper.type = single_paper['type']
+
         paper.title = single_paper['title']
         paper.year, paper.month, paper.day = single_paper['publication_date'].split('-')
         for single_author in single_paper['authorships']:
@@ -58,14 +94,8 @@ def fetch_author_papers(oaid:str):
         paper.fwci = single_paper['fwci'] or ''
 
         paper.tag_preprint()
-        paper.cvrp_year_fix()
+        paper.cvpr_year_fix()
 
         papers.append(paper)
     
-    return papers
-def test():
-    oaid , success , message = search_author_id('Mingkui_Tan')
-    print(message)
-
-if __name__ == '__main__':
-    test()
+    return papers,f'Successfully fetched {len(papers.papers_list)} papers'

@@ -1,12 +1,13 @@
+import copy
 from typing import Tuple, Optional
 
 class Author:
-    def __init__ (self, name:str, display_name:str='', dblpid:str='',oaid:str='', papers:Optional['Papers']=None):
+    def __init__ (self, name:str, display_name:str='', dblpid:str='',oaid:str='',coauthor_list:Optional[list]=None):
         self.name = name
         self.display_name = display_name
         self.dblpid = dblpid
         self.oaid = oaid
-        self.papers = papers or Papers()
+        self.coauthor_list = coauthor_list or []
 
     @classmethod
     def from_dict(cls,data:dict):
@@ -14,25 +15,23 @@ class Author:
         for field in required_fields:
             if field not in data:
                 raise ValueError(f'Missing required field {field} in Author data')
-        papers = Papers.from_dict(data)
         return cls(
             name = data.get('name',''),
             display_name = data.get('display_name',''),
             dblpid = data.get('dblpid',''),
             oaid = data.get('oaid',''),
-            papers = papers
+            coauthor_list = data.get('coauthor_list','')
         )
     
     def to_dict(self, include_empty=False):
         result = {}
         for k, v in self.__dict__.items():
-            key = 'papers_list' if k == 'papers' else k  # 映射字段名
             if hasattr(v, 'to_list'):
-                result[key] = v.to_list(include_empty)
+                result[k] = v.to_list(include_empty)
             elif hasattr(v, 'to_dict'):
-                result[key] = v.to_dict(include_empty)
+                result[k] = v.to_dict(include_empty)
             elif include_empty or v not in (None, '', [], {}):
-                result[key] = v
+                result[k] = v
         return result
     
     def get_shown_name(self):
@@ -40,25 +39,19 @@ class Author:
     
     def short_info(self) -> str:
         return f'{self.get_shown_name()} (name: {self.name}, dblp id: {self.dblpid}, openAlex id: {self.oaid})'
-    def info(self) -> str:
-        info = f'{self.get_shown_name()} (name: {self.name}, dblp id: {self.dblpid}, openAlex id: {self.oaid})\n'
-        info += f'Found {len(self.papers.papers_list)} papers:'
-        for index, paper in enumerate(self.papers.papers_list):
-            info += f'\n{index+1}. {paper.title} - ({paper.year})'
-        return info
     
     def safe_set_display_name(self, display_name:str) -> Tuple[bool, str]:
         if display_name != '':
             self.display_name = display_name.replace(' ','_')
-            return True, f'Scuccessfully set {self.display_name}(name:{self.name}) as display name'
+            return True, f'Scuccessfully set {self.display_name}(name:{self.name}) as display name'     
 
-    def safe_set_dblpid(self, dblpid:str) -> Tuple[bool, str]:
-        if dblpid.count('/') != 1:
-            return False , 'Invalid DBLP ID'
-        else:
-            self.dblpid = dblpid
-            return True, f'Scuccessfully set {dblpid} as {self.get_shown_name()} DBLP ID'        
-
+    def add_name_to_coauthor_list(self,author_name:str):
+        if author_name != self.name:
+            if author_name not in self.coauthor_list:
+                self.coauthor_list.append(author_name)
+                return True
+        return False
+    
 class Authors:
     def __init__ (self, authors_list:list=[]):
         self.authors_list = authors_list
@@ -69,7 +62,7 @@ class Authors:
         return cls(authors_list)
     
     @classmethod
-    def from_dictlist(cls,data_list:list):
+    def from_list(cls,data_list:list):
         authors_list = [Author.from_dict(author_data) for author_data in data_list]
         return cls(authors_list)
 
@@ -85,7 +78,7 @@ class Authors:
     def info_list(self) -> list:
         info_list = []
         for index , single_author in enumerate(self.authors_list):
-            info_list.append(f'{index+1}. {single_author.get_shown_name()} (name: {single_author.name}, dblp id: {single_author.dblpid})')
+            info_list.append(f'{index+1}. {single_author.short_info()}')
         return info_list
     def append(self, new_author:Author) -> Tuple[bool,str]:
         for single_author in self.authors_list:
@@ -140,7 +133,7 @@ class Paper:
 
     @classmethod
     def from_dict(cls,data:dict):
-        required_fields = ['title','type','year','author_name_list']
+        required_fields = ['title','year','author_name_list']
         for field in required_fields:
             if field not in data:
                 print(f'error date:{data}')
@@ -184,17 +177,20 @@ class Paper:
                 setattr(self, key, value)
 
     def tag_preprint(self):
-        if self.type == 'preprint':
-            return True
-        if 'arxiv' in self.doi.lower():
-            self.type = 'preprint'
-            return True
-        if 'corr' in self.location.lower():
-            self.type = 'preprint'
-            return True
-        return False
+        try:
+            if self.type == 'preprint':
+                return True
+            if 'arxiv' in self.doi.lower():
+                self.type = 'preprint'
+                return True
+            if 'corr' in self.location.lower():
+                self.type = 'preprint'
+                return True
+            return False
+        except Exception as e:
+            print(self.location)
     
-    def cvrp_year_fix(self) -> bool:
+    def cvpr_year_fix(self) -> bool:
         if 'cvpr' in self.location.lower():
             try:
                 year = int(self.location[:4])
@@ -204,6 +200,9 @@ class Paper:
             except ValueError:
                 return False
         return False
+    
+    def short_info(self) -> str:
+        return f'{self.title}({self.type}) - ({self.year})'
 
 
 class Papers:
@@ -268,10 +267,33 @@ class Papers:
 
     def merge(self,other: 'Papers') -> int:   
         new_papers_count = 0
+        if self == None and other != None:
+            self = copy.deepcopy(other)
+            return len(self.papers_list)
+        if other == None:
+            return 0
         for new_paper in other.papers_list:
             new_papers_count += (self.append(new_paper) == True)
         self.sort()
         return new_papers_count
     
     def count(self) -> int:
+        return len(self.papers_list)
+    
+    def paper_screening(self,author:Author):
+        raw_papers_list = copy.deepcopy(self.papers_list)
+        self.papers_list.clear()
+        while True:
+            count = 0
+            for i in range(len(raw_papers_list) - 1, -1, -1):
+                for author_name in raw_papers_list[i].author_name_list:
+                    if author_name in author.coauthor_list:
+                        self.append(raw_papers_list[i])
+                        for new_coauthor in raw_papers_list[i].author_name_list:
+                            author.add_name_to_coauthor_list(new_coauthor)
+                        raw_papers_list.pop(i)
+                        count += 1
+                        break
+            if count == 0: 
+                break
         return len(self.papers_list)

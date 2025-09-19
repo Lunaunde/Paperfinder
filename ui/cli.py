@@ -1,18 +1,19 @@
-from models import Author, Paper
+from models import Author, Paper, Papers
 from api import dblp
 from api import openalex as oa
 import excel_file_operations as efo
+import time
 
-def command_processing(command_list,authors):
+def command_processing(command_list,authors,papers):
     if len(command_list) < 1: return True
     elif command_list[0] == 'help':
         command_help()
     elif command_list[0] == 'author':
         command_author(command_list[1:],authors)
     elif command_list[0] == 'paper':
-        command_paper(command_list[1:],authors)
+        command_paper(command_list[1:],authors,papers)
     elif command_list[0] == 'excel':
-        command_excel(command_list[1:],authors)
+        command_excel(command_list[1:],authors,papers)
     elif command_list[0] == 'exit':
         return False
     else:
@@ -188,16 +189,24 @@ def command_author_remove(command_list,authors):
                 print('Canceled')
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
-
-def command_paper(command_list,authors):
+def command_paper(command_list,authors,papers):
     if len(command_list) < 1:
         print('Usage: paper <get/update> ... Or use "help" command to see available commands')
+    elif command_list[0] == 'list':
+        command_paper_list(command_list[1:],papers)
     elif command_list[0] == 'get':
         command_paper_get(command_list[1:],authors)
     elif command_list[0] == 'update':
-        command_paper_update(command_list[1:],authors)
+        command_paper_update(command_list[1:],authors,papers)
     else:
         print('Usage: paper <get/update> ... Or use "help" command to see available commands')
+def command_paper_list(command_list,papers):
+    if len(command_list) > 0:
+        print('Usage: paper list - list all papers')
+        return
+    for index,paper in enumerate(papers.papers_list):
+        print(f'{index+1}. {paper.short_info()}')
+    return
 def command_paper_get(command_list,authors):
     if len(command_list) > 1 or len(command_list) < 1:
         print('Usage: paper get <name/displayName>(optional) - get papers of author')
@@ -208,7 +217,7 @@ def command_paper_get(command_list,authors):
         for index , sigle_paper in enumerate(target_author.papers.papers_list):
             print(f'{index+1}. {sigle_paper.title} - ({sigle_paper.year})')
             
-def command_paper_update(command_list,authors):
+def command_paper_update(command_list,authors,papers):
     if len(command_list) > 1:
         print('Usage: paper update <name/displayName>(optional) - update papers of author (or all)')
     elif len(command_list) == 1:
@@ -216,16 +225,20 @@ def command_paper_update(command_list,authors):
         if success:
             print(f'Processing...')
             new_papers_count = 0
-            if target_author.dblpid == '':
-                print(f'{target_author.get_shown_name()} has no dblpID, please use "author modify dblpid [search/set] <value>" to find one')
-            else :
-                new_papers = dblp.fetch_author_papers(target_author.dblpid)
-                new_papers_count += target_author.papers.merge(new_papers)
-            if target_author.oaid == '':
-                print(f'{target_author.get_shown_name()} has no OpenAlexID, please use "author modify oaid [search/set] <value>" to find one')
+            raw_papers = Papers()
+            success , message = oa.build_initial_coauthor_list(target_author)
+            if success == False:
+                print(message)
+            new_papers = Papers()
+            new_papers,message = dblp.fetch_author_papers_by_name(target_author.name)
+            raw_papers.merge(new_papers)
+            new_papers,message = oa.fetch_author_papers(target_author.oaid)
+            raw_papers.merge(new_papers)
+            if raw_papers != None:
+                raw_papers.paper_screening(target_author)
+                new_papers_count += papers.merge(raw_papers)
             else:
-                new_papers = oa.fetch_author_papers(target_author.oaid)
-                new_papers_count += target_author.papers.merge(new_papers)
+                print(message)
             print(f'Successfully update {new_papers_count} papers of {target_author.get_shown_name()}')
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
@@ -233,14 +246,23 @@ def command_paper_update(command_list,authors):
         print(f'Processing...')
         all_new_papers_count = 0
         for single_author in authors.authors_list:
-            if single_author.dblpid == '':
-                continue
+            raw_papers = Papers()
+            success , message = oa.build_initial_coauthor_list(target_author)
+            if success == False:
+                print(message)
             else:
-                new_papers = dblp.fetch_author_papers(single_author.dblpid)
-                new_papers_count = single_author.papers.merge(new_papers)
+                new_papers = Papers()
+                new_papers,message = dblp.fetch_author_papers_by_name(target_author.name)
+                raw_papers.merge(new_papers)
+                new_papers,message = oa.fetch_author_papers(target_author.oaid)
+                raw_papers.merge(new_papers)
+                if raw_papers != None:
+                    raw_papers.paper_screening(target_author)
+                    new_papers_count += papers.merge(raw_papers)
+                else:
+                    print(message)
                 all_new_papers_count += new_papers_count
-                if new_papers_count != 0:
-                    print(f'Successfully update {new_papers_count} papers of {single_author.get_shown_name()}')
+                print(f'Successfully update {new_papers_count} papers of {target_author.get_shown_name()}')
         print(f'Successfully update {all_new_papers_count} papers in total')
     
     
@@ -274,10 +296,10 @@ def command_excel_output(command_list,authors):
 
 
 
-def run_cli(authors):
+def run_cli(authors,papers):
     running=True
     print('Welcome to paperfinder cli, try "help" command to see available commands')
     while running:
         command = input()
-        running = command_processing(command.split(),authors)
+        running = command_processing(command.split(),authors,papers)
     return
