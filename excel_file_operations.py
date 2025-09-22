@@ -16,48 +16,51 @@ def output_authors(authors):
     data = {
         'name': [],
         'display_name': [],
-        'dblpid': []
+        'openAlexID': [],
+        'coauthor_list': []
     }
     for author in authors.authors_list:
         data['name'].append(author.name)
         data['display_name'].append(author.display_name)
-        data['dblpid'].append(author.dblpid)
+        data['openAlexID'].append(author.oaid)
+        data['coauthor_list'].append(author.coauthor_list)
 
     df = pd.DataFrame(data)
     excel_merge('output.xlsx', df, 'authors')
 
-def output_author_papers(author):
-    sheet_name = author.name
+def output_author_papers(author,author_papers,file_name='output'):
+    sheet_name = author
     data = {
         'title': [],
         'type': [],
-        'year': [],
         'authors': [],
-        'ee': [],
+        'year': [],
         'month': [],
+        'day': [],
+        'doi': [],
+        'source': [],
         'volume': [],
-        'pages': [],
         'number': [],
-        'journal': [],
-        'booktitle': [],
+        'pages': [],
+        'fwci': [],
         'need_manual_check': []
+
     }
-    for paper in author.papers.papers_list:
+    for paper in author_papers.papers_list:
         data['title'].append(paper.title)
         data['type'].append(paper.type)
+        data['authors'].append(paper.author_name_list)
         data['year'].append(paper.year)
-        author_list_str = ','.join(paper.author_name_list)
-        data['authors'].append(author_list_str)
-        data['doi'].append(paper.doi)
-
         data['month'].append(paper.month)
+        data['day'].append(paper.day)
+        data['doi'].append(paper.doi)
+        data['source'].append(paper.source)
         data['volume'].append(paper.volume)
-        data['pages'].append(paper.pages)
         data['number'].append(paper.number)
-        data['journal'].append(paper.journal)
-        data['booktitle'].append(paper.booktitle)
+        data['pages'].append(paper.pages)
+        data['fwci'].append(paper.fwci)
         data['need_manual_check'].append(paper.need_manual_check)
 
     df = pd.DataFrame(data)
-    excel_merge('output.xlsx', df, sheet_name)
+    excel_merge(f'{file_name}.xlsx', df, sheet_name)
     return

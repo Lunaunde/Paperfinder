@@ -1,7 +1,6 @@
 import requests
 import xml.etree.ElementTree as ET
 import json
-import questionary
 import json_file_operations as jfo
 import excel_file_operations as efo
 from ui.cli import run_cli

@@ -31,6 +31,7 @@ def command_help():
     'author modify <name/displayName> [displayName/dblpid/oaid] [search/set] <searchName/value> - modify author info by name.\n'
     'author remove <name> - remove an author from authorlist by name\n'
     '2. paper\n'
+    'paper list - list all papers in paperlist\n'
     'paper get <name/displayName> - get papers of author by name\n'
     'paper update <name/displayName>(optional) - update papers of author (or all)\n'
     '3. excel\n'
@@ -75,7 +76,7 @@ def command_author_info(command_list,authors):
     else:
         target_author , success = authors.find(command_list[0])
         if success:
-            print(target_author.info())
+            print(target_author.short_info())
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
 def command_author_modify(command_list,authors):
@@ -93,22 +94,6 @@ def command_author_modify(command_list,authors):
                         print(message)
                 else:
                     print('Usage: author displayName [set] <displayName>]')
-            elif command_list[1] == 'dblpid':
-                if command_list[2] == 'search':
-                    if len(command_list) == 3:
-                        print("Searching author...")
-                        dblpid_search_loop(target_author.name,target_author)
-                    elif len(command_list) == 4:
-                        print("Searching author...")
-                        dblpid_search_loop(command_list[3],target_author)
-                    else:
-                        print('Usage: author modify <name/displayName> dblpID search <searchName>(optional) - It will use author\'s name to fetch author\'s dblpID')
-                        
-                elif command_list[2] == 'set':
-                    success , message = target_author.safe_set_dblpid(command_list[3])
-                    print(message)
-                else:
-                    print('Usage: author dblpid [search/set] <dblpid>')
             elif command_list[1] == 'oaid':
                 if command_list[2] == 'search':
                     if len(command_list) == 3:
@@ -120,7 +105,7 @@ def command_author_modify(command_list,authors):
                     else:
                         print('Usage: author modify <name/displayName> oaid search <searchName>(optional) - It will use author\'s name to fetch author\'s dblpID')        
                 elif command_list[2] == 'set':
-                    success , message = target_author.safe_set_dblpid(command_list[3])
+                    success , message = target_author.set_oaid(command_list[3])
                     print(message)
                 else:
                     print('Usage: author dblpid [search/set] <searchName/value>')    
@@ -128,44 +113,6 @@ def command_author_modify(command_list,authors):
                 print('Usage: author modify <name/displayName> [displayName/dblpid/oaid] [search/set] <searchName/value>')
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
-def dblpid_search_loop(search_name,target_author):
-    result , success , message = dblp.search_author(search_name)
-    print(message)
-    if not success:
-        return
-    print(f'prefect hit and full hit:')
-    for index , single_author in enumerate(result):
-        #single_author['papertitle'] = dblp.find_a_paper_by_dblpid(single_author['dblpid'])
-        if(single_author['hit'] == 'partial'):
-            break
-        print(f'{index+1}. {single_author["name"]} (dblp id: {single_author["dblpid"]}, match type: {single_author["hit"]})')
-    
-    loop = True
-    print('you can use command behind:\n'
-            'set <index> - set as the dblpid of the index-th author\n'
-            'info <index> - show a paper\'s info of the author with index\n'
-            'showall - show all hits\n'
-            '<anything else> - cancel modify')
-    while loop:
-        command = input()
-        command_list = command.split()
-        if command_list[0] == 'set':
-            try: 
-                target_author.dblpid = result[int(command_list[1])-1]['dblpid']
-                print(f'Successly set the dblpid of {target_author.name} to {target_author.dblpid}') 
-                loop = False
-            except (ValueError,IndexError,TypeError):
-                print('Usage: set <index> - please make sure you input a illegal index')
-        elif command_list[0] == 'info':
-            print('Getting paper info...')
-            title , success = dblp.find_a_paper_by_dblpid(result[int(command_list[1])-1]['dblpid'])
-            print(f'One of the papers of {result[int(command_list[1])-1]['name']} is: {title}')
-        elif command_list[0] == 'showall':
-            for index,single_author in enumerate(result):
-                print(f'{index+1}. {single_author['name']} (dblp id: {single_author['dblpid']}, match type: {single_author['hit']})')
-        else:
-            loop = False
-    return
 def oaid_search(search_name,target_author):
     result , success , message = oa.search_author_id(search_name)
     print(message)
@@ -195,7 +142,7 @@ def command_paper(command_list,authors,papers):
     elif command_list[0] == 'list':
         command_paper_list(command_list[1:],papers)
     elif command_list[0] == 'get':
-        command_paper_get(command_list[1:],authors)
+        command_paper_get(command_list[1:],authors,papers)
     elif command_list[0] == 'update':
         command_paper_update(command_list[1:],authors,papers)
     else:
@@ -207,15 +154,18 @@ def command_paper_list(command_list,papers):
     for index,paper in enumerate(papers.papers_list):
         print(f'{index+1}. {paper.short_info()}')
     return
-def command_paper_get(command_list,authors):
+def command_paper_get(command_list,authors,papers):
     if len(command_list) > 1 or len(command_list) < 1:
-        print('Usage: paper get <name/displayName>(optional) - get papers of author')
+        print('Usage: paper get <name/displayName> - get papers of author')
     elif len(command_list) == 1:
         target_author , success = authors.find(command_list[0])
         if success:
-            print(f'{target_author.get_shown_name()} has {target_author.papers.count()} papers')
-        for index , sigle_paper in enumerate(target_author.papers.papers_list):
-            print(f'{index+1}. {sigle_paper.title} - ({sigle_paper.year})')
+            author_papers = Papers()
+            author_papers = papers.get_auther_paper(target_author.name)
+        
+            print(f'{target_author.get_shown_name()} has {author_papers.count()} papers')
+            for index,single_paper in enumerate(author_papers.papers_list):
+                    print(f'{index+1}. {single_paper.short_info()}')
             
 def command_paper_update(command_list,authors,papers):
     if len(command_list) > 1:
@@ -224,21 +174,7 @@ def command_paper_update(command_list,authors,papers):
         target_author , success = authors.find(command_list[0])
         if success:
             print(f'Processing...')
-            new_papers_count = 0
-            raw_papers = Papers()
-            success , message = oa.build_initial_coauthor_list(target_author)
-            if success == False:
-                print(message)
-            new_papers = Papers()
-            new_papers,message = dblp.fetch_author_papers_by_name(target_author.name)
-            raw_papers.merge(new_papers)
-            new_papers,message = oa.fetch_author_papers(target_author.oaid)
-            raw_papers.merge(new_papers)
-            if raw_papers != None:
-                raw_papers.paper_screening(target_author)
-                new_papers_count += papers.merge(raw_papers)
-            else:
-                print(message)
+            new_papers_count = paper_update(target_author,papers)
             print(f'Successfully update {new_papers_count} papers of {target_author.get_shown_name()}')
         else:
             print(f'No author found for name/displayName: {command_list[0]}')
@@ -246,35 +182,42 @@ def command_paper_update(command_list,authors,papers):
         print(f'Processing...')
         all_new_papers_count = 0
         for single_author in authors.authors_list:
-            raw_papers = Papers()
-            success , message = oa.build_initial_coauthor_list(target_author)
-            if success == False:
-                print(message)
-            else:
-                new_papers = Papers()
-                new_papers,message = dblp.fetch_author_papers_by_name(target_author.name)
-                raw_papers.merge(new_papers)
-                new_papers,message = oa.fetch_author_papers(target_author.oaid)
-                raw_papers.merge(new_papers)
-                if raw_papers != None:
-                    raw_papers.paper_screening(target_author)
-                    new_papers_count += papers.merge(raw_papers)
-                else:
-                    print(message)
-                all_new_papers_count += new_papers_count
-                print(f'Successfully update {new_papers_count} papers of {target_author.get_shown_name()}')
+            new_papers_count = paper_update(single_author,papers)
+            all_new_papers_count += new_papers_count
+            print(f'Successfully update {new_papers_count} papers of {single_author.get_shown_name()}')
         print(f'Successfully update {all_new_papers_count} papers in total')
+
+def paper_update(author,papers):
+    new_papers_count = 0
+    raw_papers = Papers()
+    if len(author.coauthor_list) == 0:
+        success , message = oa.build_initial_coauthor_list(author)
+        if success == False:
+            print(message)
+    new_papers = Papers()
+    new_papers,message = dblp.fetch_author_papers_by_name(author.name)
+    raw_papers.merge(new_papers)
+    new_papers,message = oa.fetch_author_papers(author.oaid)
+    raw_papers.merge(new_papers)
+    if raw_papers != None:
+        raw_papers.paper_screening(author)
+        new_papers_count += papers.merge(raw_papers)
+    else:
+        print(message)
+    return new_papers_count
     
     
-def command_excel(command_list,authors):
+def command_excel(command_list,authors,papers):
     if len(command_list) < 1:
         print('Usage: excel output [authors/papers] ... Or use "help" command to see available commands')
     elif command_list[0] == 'output':
-        command_excel_output(command_list[1:],authors)
+        command_excel_output(command_list[1:],authors,papers)
+    else:
+        print('Usage: excel output [authors/papers] ... Or use "help" command to see available commands')
             
 
-def command_excel_output(command_list,authors):
-    if len(command_list) < 1 or len(command_list) > 1:
+def command_excel_output(command_list,authors,papers):
+    if len(command_list) < 1 or len(command_list) > 2:
         print('Usage: excel output [authors/papers]')
     elif command_list[0] == 'authors':
         efo.output_authors(authors)
@@ -282,17 +225,15 @@ def command_excel_output(command_list,authors):
     elif command_list[0] == 'papers':
         if len(command_list) == 1:
             for single_author in authors.authors_list:
-                efo.output_author_papers(single_author)
+                efo.output_author_papers(single_author.name,papers)
             print('Successfully output all papers')
         elif len(command_list) == 2:
-            target_author , success = authors.find(command_list[1])
-            if success:
-                efo.output_author_papers(target_author)
-                print(f'Successfully output papers of {target_author.get_shown_name()}')
-            else:
-                print(f'No author found for name/displayName: {command_list[1]}')
+            efo.output_author_papers(command_list[1],papers)
+            print(f'Successfully output papers of {command_list[1]}')
         else:
             print('Usage: excel output papers <name/displayName>(optional) - output papers of author (or all)')
+    else:
+        print('Usage: excel output [authors/papers]')
 
 
 

@@ -16,7 +16,7 @@ def search_author_id(author_name:str):
         return '',False,f'Error:no author found for {author_name}'
 
     oaid = response_json['results'][0]['id'][21:]
-    return oaid,True,f'Successly get {author_name}\'s OpenAlex ID: {oaid}'
+    return oaid,True,f'Successlly get {author_name}\'s OpenAlex ID: {oaid}'
 
 def build_initial_coauthor_list(author:Author,institution_id:str='i90610280'):
     if author.oaid == '':
@@ -83,7 +83,7 @@ def fetch_author_papers(oaid:str):
             paper.author_name_list.append(single_author['raw_author_name'])
         paper.doi = single_paper['doi'] or ''
 
-        paper.location = ((single_paper.get('primary_location') or {}).get('source',{}) or {}).get('display_name', '')
+        paper.source = ((single_paper.get('primary_location') or {}).get('source',{}) or {}).get('display_name', '')
         paper.volume = single_paper['biblio']['volume'] or ''
         paper.number = single_paper['biblio']['issue'] or ''
         if single_paper['biblio']['first_page'] and single_paper['biblio']['last_page']:

@@ -20,7 +20,7 @@ class Author:
             display_name = data.get('display_name',''),
             dblpid = data.get('dblpid',''),
             oaid = data.get('oaid',''),
-            coauthor_list = data.get('coauthor_list','')
+            coauthor_list = data.get('coauthor_list',[])
         )
     
     def to_dict(self, include_empty=False):
@@ -43,8 +43,10 @@ class Author:
     def safe_set_display_name(self, display_name:str) -> Tuple[bool, str]:
         if display_name != '':
             self.display_name = display_name.replace(' ','_')
-            return True, f'Scuccessfully set {self.display_name}(name:{self.name}) as display name'     
-
+            return True, f'Successfully set {self.display_name}(name:{self.name}) as display name'     
+    def set_oaid(self, oaid:str):
+        self.oaid = oaid
+        return True, f'Successfully set {self.name} as oaid'
     def add_name_to_coauthor_list(self,author_name:str):
         if author_name != self.name:
             if author_name not in self.coauthor_list:
@@ -115,7 +117,7 @@ class Authors:
 
 class Paper:
     def __init__ (self, title:str='', type:str='', year:str='', month:str='', day:str='' , 
-            author_name_list: Optional[list] = None, doi:str='', location:str='', volume:str='',
+            author_name_list: Optional[list] = None, doi:str='', source:str='', volume:str='',
             number:str='', pages:str='', fwci:str='', need_manual_check:str=''):
         self.title = title
         self.type = type
@@ -124,7 +126,7 @@ class Paper:
         self.day = day
         self.author_name_list = author_name_list or []
         self.doi = doi
-        self.location = location
+        self.source = source
         self.volume = volume
         self.number = number
         self.pages = pages
@@ -140,7 +142,7 @@ class Paper:
                 raise ValueError(f'Missing required field {field} in data')
         allowed_fields = {
         'title', 'type', 'year', 'month', 'day', 'author_name_list',
-        'doi', 'location', 'volume', 'number', 'pages', 'fwci', 'need_manual_check'
+        'doi', 'source', 'volume', 'number', 'pages', 'fwci', 'need_manual_check'
         }
     
         filtered_data = {k: v for k, v in data.items() if k in allowed_fields}
@@ -183,19 +185,25 @@ class Paper:
             if 'arxiv' in self.doi.lower():
                 self.type = 'preprint'
                 return True
-            if 'corr' in self.location.lower():
-                self.type = 'preprint'
-                return True
+            if isinstance(self.source, list):
+                for single_source in self.source:
+                    if 'corr' in single_source.lower():
+                        self.type = 'preprint'
+                        return True
+            else:
+                if 'corr' in self.source.lower():
+                    self.type = 'preprint'
+                    return True
             return False
         except Exception as e:
-            print(self.location)
+            print(self.source)
     
     def cvpr_year_fix(self) -> bool:
-        if 'cvpr' in self.location.lower():
+        if 'cvpr' in self.source.lower():
             try:
-                year = int(self.location[:4])
+                year = int(self.source[:4])
                 if year != self.year:
-                    self.location = f'{self.year}{self.location[4:]}'
+                    self.source = f'{self.year}{self.source[4:]}'
                     return True
             except ValueError:
                 return False
@@ -267,9 +275,6 @@ class Papers:
 
     def merge(self,other: 'Papers') -> int:   
         new_papers_count = 0
-        if self == None and other != None:
-            self = copy.deepcopy(other)
-            return len(self.papers_list)
         if other == None:
             return 0
         for new_paper in other.papers_list:
@@ -286,14 +291,25 @@ class Papers:
         while True:
             count = 0
             for i in range(len(raw_papers_list) - 1, -1, -1):
-                for author_name in raw_papers_list[i].author_name_list:
-                    if author_name in author.coauthor_list:
-                        self.append(raw_papers_list[i])
-                        for new_coauthor in raw_papers_list[i].author_name_list:
-                            author.add_name_to_coauthor_list(new_coauthor)
-                        raw_papers_list.pop(i)
-                        count += 1
-                        break
+                if author.name.replace('_',' ') in raw_papers_list[i].author_name_list:
+                    for author_name in raw_papers_list[i].author_name_list:
+                        if author_name in author.coauthor_list:
+                            self.append(raw_papers_list[i])
+                            for new_coauthor in raw_papers_list[i].author_name_list:
+                                author.add_name_to_coauthor_list(new_coauthor)
+                            raw_papers_list.pop(i)
+                            count += 1
+                            break
             if count == 0: 
                 break
         return len(self.papers_list)
+    
+    def get_auther_paper(self,name:str)->'Papers':
+        name = name.replace('_',' ')
+        result = Papers()
+        
+        for single_paper in self.papers_list:
+            if name in single_paper.author_name_list:
+                result.append(single_paper)
+
+        return result
